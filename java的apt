@@ -1,0 +1,69 @@
+###自定义注解类
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.SOURCE)
+public @interface MyDataBean {
+    String value();
+}
+
+
+###注解处理类
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.tools.JavaFileObject;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class MyAnnotationProcessor extends AbstractProcessor {
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        Set<String> set = new HashSet<>();
+        set.add(MyDataBean.class.getCanonicalName());
+        return set;
+    }
+
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(MyDataBean.class)) {
+            String packageName = processingEnv.getElementUtils().getPackageOf(element).toString();
+            String className = element.getSimpleName().toString();
+            String methodName = "hello";
+
+            StringBuilder builder = new StringBuilder();
+            builder.append("package ").append(packageName).append(";\n\n");
+            builder.append("public final class ").append(className).append(" {\n\n");
+            builder.append("\tpublic void ").append(methodName).append("() {\n");
+            builder.append("\t\tSystem.out.println(\"").append(element.getAnnotation(MyDataBean.class).value()).append("\");\n");
+            builder.append("\t}\n}\n");
+
+            try {
+                JavaFileObject sourceFile = processingEnv.getFiler().createSourceFile(packageName + "." + className);
+                Writer writer = sourceFile.openWriter();
+                writer.write(builder.toString());
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+}
+
+###操作类(就是使用注解的类)
+@MyDataBean("sb")
+public class User {
+    private int id;
+}
+
