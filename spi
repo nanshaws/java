@@ -1,0 +1,50 @@
+java的spi学习
+ SPI（Service Provider Interface）通常在框架或库中使用，用于插件化开发。
+ 通过定义一组接口，框架或库将对这些接口的实现进行查找、加载和实例化。
+ 具体地说，一个Java应用程序可以动态地加载、使用和替换服务提供者实现，而无需重新编译代码。
+ 
+ ###接口类
+package spi;
+
+public interface niao {
+    void jiao();
+}
+
+###两个实现类分别是
+package spi;
+
+public class wuya implements niao{
+    @Override
+    public void jiao() {
+        System.out.println("gaga");
+    }
+}
+
+package spi;
+
+public class yiwu implements niao{
+    @Override
+    public void jiao() {
+        System.out.println("gugu");
+    }
+}
+
+###Test的测试类
+package spi;
+
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
+public class Test {
+    public static void main(String[] args) {
+        ServiceLoader<spi.niao> serviceLoader=ServiceLoader.load(spi.niao.class);
+        for (niao n:serviceLoader){
+           n.jiao();
+        }
+    }
+}
+
+别忘了在resource里面创建 META-INF/services/ 文件夹并在下面创建一个名为 spi.niao 的文件，并在其中添加 接口实现 类名。  创建的文件是有讲究的，是包名加类名
+
+
+后面点击运行测试类，即可实现在文件里面的类的jiao方法
